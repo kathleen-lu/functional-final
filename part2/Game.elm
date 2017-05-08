@@ -1,11 +1,11 @@
-module Graphics exposing(..)
+module Game exposing(..)
 
 --imports
 import Deck as D 
 import Mechanics as M 
 import Time
-import Html exposing (Html)
-import Html.Attributes as Attr
+import Html exposing (..)
+import Html.Attributes as Attribute exposing(style)
 
 ----------------------------------------------------------------------
 
@@ -38,7 +38,13 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  let display = Html.text (" " ++ toString model) in
-  Html.div [] [display]
+  let title = text "Go Fish" in
+  let display = text (" " ++ toString model) in
+    div [mainStyle] [h1 [titleStyle] [title], div [] [display]]
 
+--- attribute styles
+mainStyle : Attribute msg
+mainStyle = style [("width", "750px"), ("margin", "5%"), ("font-family", "sans-serif")]
 
+titleStyle : Attribute msg
+titleStyle = style [("text-align", "center")]
