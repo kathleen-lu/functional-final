@@ -43,8 +43,8 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let testCard = {face=D.Ace, suit=D.Heart} in
-  let graphic =  Element.toHtml <| Collage.collage 600 600 [G.renderFaceUp testCard] in 
+  let testHand = [{face=D.Ace, suit=D.Heart}, {face = D.Four, suit = D.Spade}, {face = D.Seven, suit = D.Clover}, {face = D.Six, suit = D.Diamond}] in
+  let graphic =  Element.toHtml <| Collage.collage 1000 600 [G.renderHand testHand] in 
     div [mainStyle] [h1 [titleStyle] [title], div [] [display, graphic]]
 
 --- attribute styles

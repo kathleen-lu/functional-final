@@ -16,6 +16,14 @@ w = 100
 cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
 
 -- functions
+renderHand : List Card -> Collage.Form
+renderHand cards = 
+  case cards of
+    [] -> Collage.filled Color.white (Collage.circle 1) -- lol
+    fst::rest -> 
+      Collage.group [ renderFaceUp fst,
+                      Collage.move (w*1.1,0) <| renderHand rest]
+
 renderFaceUp : Card -> Collage.Form
 renderFaceUp card =
   let face = card.face in 
@@ -27,7 +35,7 @@ renderFaceUp card =
                     Collage.move (-w/2.5,h/2.5) tc,
                     Collage.move (w/2.5,-h/2.5) bc,
                     ct
-                  ]
+                  ] 
 
 renderCenterImg : Suit -> Collage.Form
 renderCenterImg suit = 
@@ -55,7 +63,7 @@ renderSuit suit =
 
 renderHeart : Collage.Form
 renderHeart = 
-  Collage.group [ Collage.move (s, 0) <| red (Collage.circle s),
+  Collage.move (0,-s*0.8) <| Collage.group [ Collage.move (s, 0) <| red (Collage.circle s),
                   Collage.move (-s, 0) <| red (Collage.circle s),
                   Collage.move (0,-(s+0.4)) <| Collage.rotate (degrees 150) <| red (Collage.ngon 3 (s+5.95)) 
                 ]
@@ -63,7 +71,7 @@ renderHeart =
 renderClover : Collage.Form
 renderClover = 
   let m = s*1.2 in
-  Collage.group [ Collage.move (m,0) <| black (Collage.circle s),
+  Collage.move (0,-s*0.8) <| Collage.group [ Collage.move (m,0) <| black (Collage.circle s),
                   Collage.move (-m,0) <| black (Collage.circle s),
                   Collage.move (0,m) <| black (Collage.circle s),
                   Collage.move (0,0) <| black (Collage.square m),
@@ -73,17 +81,16 @@ renderClover =
 renderSpade : Collage.Form
 renderSpade =
   let m = s*1.2 in 
-  Collage.group [
-                  Collage.move (s, -s) <| black (Collage.circle s),
+  Collage.move (0,-s*0.9) <| Collage.group [ Collage.move (s, -s) <| black (Collage.circle s),
                   Collage.move (-s, -s) <| black (Collage.circle s),
-                  Collage.move (0,1) <| Collage.rotate (degrees -150) <| black (Collage.ngon 3 (s+4)),
+                  Collage.move (0,0.8) <| Collage.rotate (degrees -150) <| black (Collage.ngon 3 (s+5.6)),
                   Collage.move (0,-m*2) <| Collage.rotate (degrees -150) <| black (Collage.ngon 3 (s+1)) 
                 ]
 
 renderDiamond : Collage.Form
 renderDiamond =
   let w = 12 in 
-    Collage.group [ Collage.move (s,0) <| Collage.rotate (degrees 45) <| red (Collage.square w) ]
+    Collage.move (-s*0.8,-s*0.8) <| Collage.group [ Collage.move (s,0) <| Collage.rotate (degrees 45) <| red (Collage.square w) ]
 
 faceToString : Face -> String 
 faceToString face = 
