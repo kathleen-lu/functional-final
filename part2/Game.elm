@@ -1,7 +1,7 @@
 module Game exposing(..)
 
 --imports
-import Deck as D 
+import Deck as D
 import Mechanics as M 
 import Graphics as G
 import Time
@@ -43,7 +43,8 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let graphic =  Element.toHtml <| Collage.collage 200 200 [G.renderSpade] in 
+  let testCard = {face=D.Ace, suit=D.Heart} in
+  let graphic =  Element.toHtml <| Collage.collage 600 600 [G.renderFaceUp testCard] in 
     div [mainStyle] [h1 [titleStyle] [title], div [] [display, graphic]]
 
 --- attribute styles

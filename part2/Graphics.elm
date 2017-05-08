@@ -5,18 +5,45 @@ import Deck exposing(Suit(..), Face(..), Card, Deck)
 import Color
 import Collage
 import Element exposing(Element)
+import Text exposing(fromString)
 
 -- constants
 red = Collage.filled Color.red
 black = Collage.filled Color.black
 s = 4
+h = 150
+w = 100
+cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
+
 -- functions
+renderFaceUp : Card -> Collage.Form
+renderFaceUp card =
+  let face = card.face in 
+  let suit = card.suit in
+  let tc = Collage.scale 0.6 <| renderTopCorner face suit in 
+  let bc = Collage.scale 0.6 <| renderBottomCorner face suit in
+  let ct = Collage.scale 0.6 <| renderCenterImg suit in
+    Collage.group [ cbg,
+                    Collage.move (-w/2.5,h/2.5) tc,
+                    Collage.move (w/2.5,-h/2.5) bc,
+                    ct
+                  ]
 
---renderFaceUp : Card -> Element
---renderFaceUp card =
---  let face = card.face in 
---  let suit = card.suit in
+renderCenterImg : Suit -> Collage.Form
+renderCenterImg suit = 
+  Collage.scale 2.6 <| renderSuit suit
 
+renderTopCorner : Face -> Suit -> Collage.Form
+renderTopCorner face suit = 
+  let dist = 8 in 
+  let si = Collage.moveY -dist <| renderSuit suit in
+  let letter = Collage.scale 1.4 <| Collage.toForm <| Element.centered <| fromString <| faceToString face in 
+  let fi = Collage.moveY dist letter in
+    Collage.group [si, fi]
+
+renderBottomCorner : Face -> Suit -> Collage.Form
+renderBottomCorner face suit = 
+  Collage.rotate (degrees 180) <| renderTopCorner face suit
 
 renderSuit : Suit -> Collage.Form 
 renderSuit suit = 
@@ -74,7 +101,6 @@ faceToString face =
     Jack -> "J"
     Queen -> "Q"
     King -> "K"
-
 
 -- TODO iteration 2 : add in the number of symbols according to card
 faceToInt : Face -> Int 
