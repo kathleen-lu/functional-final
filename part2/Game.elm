@@ -44,12 +44,12 @@ view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
   let testHand = [{face=D.Ace, suit=D.Heart}, {face = D.Four, suit = D.Spade}, {face = D.Seven, suit = D.Clover}, {face = D.Six, suit = D.Diamond}] in
-  let graphic =  Element.toHtml <| Collage.collage 1000 600 [G.renderHand testHand] in 
-    div [mainStyle] [h1 [titleStyle] [title], div [] [display, graphic]]
+  let graphic =  Element.toHtml <| Collage.collage 1000 600 [G.renderHand testHand, G.renderFaceDown] in 
+    div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, display]]
 
 --- attribute styles
 mainStyle : Attribute msg
-mainStyle = style [("width", "750px"), ("margin", "5%"), ("font-family", "sans-serif")]
+mainStyle = style [("width", "750px"), ("margin", "5%"), ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
 titleStyle = style [("text-align", "center")]

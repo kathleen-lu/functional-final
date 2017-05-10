@@ -13,17 +13,26 @@ black = Collage.filled Color.black
 s = 4
 h = 150
 w = 100
+emptyCollage = Collage.filled Color.white (Collage.circle 1)
 cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
+c = Color.rgb 96 134 229
 
 -- functions
 renderHand : List Card -> Collage.Form
 renderHand cards = 
   case cards of
-    [] -> Collage.filled Color.white (Collage.circle 1) -- lol
+    [] -> emptyCollage -- lol
     fst::rest -> 
       Collage.group [ renderFaceUp fst,
                       Collage.move (w*1.1,0) <| renderHand rest]
 
+-- TODO iteration 2 maybe make the rendering more specific to the deck 
+-- rather than just a facedown card
+renderDeck : Deck -> Collage.Form
+renderDeck deck = 
+  renderFaceDown
+
+-- creates a face up card given a card (face and suit)
 renderFaceUp : Card -> Collage.Form
 renderFaceUp card =
   let face = card.face in 
@@ -37,6 +46,14 @@ renderFaceUp card =
                     ct
                   ] 
 
+-- creates a generic face down card whose values are unknown
+renderFaceDown : Collage.Form
+renderFaceDown =
+  let innerBorder = Collage.filled c (Collage.rect (w/1.13) (h/1.1)) in
+  let border = Collage.outlined (Collage.solid c) (Collage.rect w h) in
+    Collage.group [border, innerBorder]
+
+-- helpers for rendering a face up card
 renderCenterImg : Suit -> Collage.Form
 renderCenterImg suit = 
   Collage.scale 2.6 <| renderSuit suit
@@ -92,6 +109,7 @@ renderDiamond =
   let w = 12 in 
     Collage.move (-s*0.8,-s*0.8) <| Collage.group [ Collage.move (s,0) <| Collage.rotate (degrees 45) <| red (Collage.square w) ]
 
+-- helpers for converting the face into a visualizable string
 faceToString : Face -> String 
 faceToString face = 
   case face of
