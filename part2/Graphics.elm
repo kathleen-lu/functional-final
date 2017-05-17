@@ -26,6 +26,14 @@ renderHand cards =
       Collage.group [ renderFaceUp fst,
                       Collage.move (w*1.1,0) <| renderHand rest]
 
+renderFacedownHand : List Card -> Collage.Form
+renderFacedownHand cards = 
+  case cards of
+    [] -> emptyCollage
+    fst::rest -> 
+      Collage.group [ renderFaceDown,
+                      Collage.move (w*1.1,0) <| renderFacedownHand rest]
+
 -- TODO iteration 2 maybe make the rendering more specific to the deck 
 -- rather than just a facedown card
 renderDeck : Deck -> Collage.Form
