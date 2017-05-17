@@ -102,6 +102,7 @@ renderMoveText model =
     Collage.move (G.h,G.w) <|
       Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString move
 
+--TODO 
 --renderScore : Model -> Collage.Form
 --renderScore model = 
 --  let score = "score: " ++ toString model.score.points in 
