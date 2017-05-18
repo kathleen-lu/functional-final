@@ -25,9 +25,9 @@ main =
     }
 
 type alias Model = M.Game 
--- { players : List Player, deck : D.Deck, current : Player, currFish = Face, asks = List (Player, Face) }
+-- { players : List Player, deck : D.Deck, current : Player, currFish : Face, asks : List (Player, Face), text : String }
 
-type Msg = NoOp | StartGame (List Int) | Score | Choose D.Card | Fish M.Player | GoFish
+type Msg = NoOp | StartGame (List Int) | Choose D.Card | Fish M.Player | NextTurn 
 
 init : (Model, Cmd Msg)
 init = (initialModel, randomList StartGame)
@@ -47,20 +47,19 @@ update msg model =
       let 
         (newPlayers, resDeck) = M.dealCards model.players newDeck 
       in 
-        ({model | players = newPlayers, deck = resDeck}, Cmd.none)
-    Score ->  -- TODO: figure out how to show this
-      ({model | players = M.scorePlayers model.players}, Cmd.none) 
+        ({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
     Choose card ->
-      ({model | currFish = Just card.face}, Cmd.none)
+      ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card."}, Cmd.none)
     Fish player -> 
-      case model.currFish of 
-        Nothing -> Debug.crash "error: didn't select card to fish yet"
-        Just f -> let checkHand = M.remove f player.hand in
-                  case checkHand of 
-                    Nothing -> ({model | currFish = Nothing, asks = (model.current, f)::model.asks}, Cmd.none)
-                    -- TODO: remove currFish from hand, replace other player's hand, update score, update current and start AI
-                    Just (c, h) -> ({model | currFish = Nothing, asks = M.removeAsk player f model.asks}, Cmd.none)
-    GoFish -> (model, Cmd.none) -- TODO
+      let newGame = M.fish model player in
+        (newGame, Cmd.none)
+    NextTurn -> 
+      if model.current.id == 1 then 
+        ({model | text = "It's your turn. Please click on one of your cards. Click the Next Turn button only on AI turns."}, Cmd.none)
+      else 
+        let newGame = M.smartAI model in 
+          (newGame, Cmd.none)
+
 
 view : Model -> Html Msg
 view model =
@@ -98,7 +97,7 @@ renderGame model =
 
 renderMoveText : Model -> Collage.Form
 renderMoveText model =
-  let move = "this is where the next move goes" in 
+  let move = model.text in 
     Collage.move (G.h,G.w) <|
       Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString move
 

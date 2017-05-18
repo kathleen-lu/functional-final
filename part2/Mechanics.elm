@@ -9,7 +9,9 @@ import Random
 type alias Hand = List D.Card 
 type alias Score = { pairs: List D.Face, points: Int }
 type alias Player = { name : String, id : Int, hand : Hand, score : Score }
-type alias Game = { players : List Player, deck : D.Deck, current : Player, currFish : Maybe D.Face, asks : List (Player, D.Face) }
+type alias Game = { players : List Player, deck : D.Deck, current : Player, currFish : Maybe D.Face, asks : List (Player, D.Face), text : String }
+
+-- Hand functions (checking for a card/removing, updating) -- 
 
 remove : D.Face -> Hand -> Maybe (D.Card, Hand) 
 remove f h = 
@@ -22,6 +24,17 @@ remove f h =
                   Nothing -> Nothing 
                   Just (card, hand) -> Just (card, c::hand))
     [] -> Nothing)
+
+updateHand : List Player -> Int -> Hand -> List Player 
+updateHand players pID newHand = 
+  (case players of 
+    [] -> []
+    p::ps ->  if p.id == pID then 
+                ({p | hand = newHand})::ps
+              else 
+                p::(updateHand ps pID newHand))
+
+-- Score functions -- 
 
 updateScore : D.Face -> Score -> Score
 updateScore f s = 
@@ -48,6 +61,8 @@ scorePlayers players =
     [] -> []
     p::ps -> (scorePlayer p)::(scorePlayers ps)
 
+-- Asks -- 
+
 removeAsk : Player -> D.Face -> List (Player, D.Face) -> List (Player, D.Face)
 removeAsk p f asks = 
   case asks of 
@@ -57,6 +72,54 @@ removeAsk p f asks =
                             else 
                               (player, face)::(removeAsk p f rest)
 
+checkAsks : Player -> List (Player, D.Face) -> Maybe (Player, D.Face)
+checkAsks p asks = 
+  (case asks of 
+    [] -> Nothing 
+    (p2, f)::rest -> 
+      (case remove f p.hand of 
+        Nothing -> checkAsks p rest 
+        Just _ -> Just (p2, f)))
+
+asksList : List (Player, D.Face) -> List Int -> List Int
+asksList asks numAsks = 
+  let 
+    addAsk i nAsks = 
+      (case nAsks of 
+        n::rest ->  if i == 1 then 
+                     (n + 1)::rest 
+                    else 
+                      n::(addAsk (i - 1) rest)
+        [] -> [])
+  in 
+    (case asks of 
+      [] -> numAsks
+      (p, _)::rest -> asksList rest (addAsk p.id numAsks))
+
+mostCards : List Player -> List (Player, D.Face) -> Int -> Player 
+mostCards players asks curr = 
+  let 
+    lengthHand players lenList = 
+      (case players of 
+        [] -> lenList 
+        p::ps -> lengthHand ps ((List.length p.hand)::lenList))
+
+    most nAsks nCards best bestpID i = 
+      (case nAsks of 
+        [] -> bestpID 
+        n::rest -> 
+          (case nCards of 
+            [] -> bestpID 
+            n2::rest2 ->  if (n2 - n) > best && i /= curr then 
+                            most rest rest2 (n2 - n) i (i + 1)
+                          else 
+                            most rest rest2 best bestpID (i + 1))) 
+  in 
+  let numAsks = asksList asks [0, 0, 0, 0] in 
+  let numCards = lengthHand players [] in 
+    findPlayer players (most numAsks numCards 0 1 1)
+
+-- Game Over -- 
 isHandEmpty : Player -> Bool
 isHandEmpty p = 
   List.isEmpty p.hand 
@@ -69,6 +132,8 @@ isGameOver : Game -> Bool
 isGameOver g = 
   isDeckEmpty g.deck || not (List.isEmpty (List.filter isHandEmpty g.players))
 
+-- update current player -- 
+
 findPlayer : List Player -> Int -> Player 
 findPlayer players id =     
   case players of 
@@ -78,12 +143,14 @@ findPlayer players id =
                 findPlayer ps id 
     _     ->  Debug.crash "findPlayer"
 
-nextPlayer : Game -> Game 
+nextPlayer : Game -> Player  
 nextPlayer g = 
   if g.current.id == List.length g.players then 
-    { g | current = findPlayer g.players 1 }
+    findPlayer g.players 1
   else 
-    { g | current = findPlayer g.players (g.current.id + 1) }
+    findPlayer g.players (g.current.id + 1)
+
+-- Drawing cards -- 
 
 drawCards : D.Deck -> Int -> (D.Deck, List D.Card)
 drawCards d n = 
@@ -91,6 +158,85 @@ drawCards d n =
     taken = List.take n d 
   in 
     (List.drop n d, taken)
+
+addCard : D.Card -> List Player -> Int -> (List Player, Bool) 
+addCard c players pID = 
+  (case players of 
+    [] -> ([], False)
+    p::ps ->  if p.id == pID then
+                (case remove c.face p.hand of 
+                  Nothing ->  (({p | hand = c::p.hand})::ps, False)
+                  Just _ -> (({p | hand = c::p.hand})::ps, True))
+              else 
+                let (newPlayers, isScore) = addCard c ps pID in 
+                  (p::newPlayers, isScore))
+
+draw : Game -> Int -> (Game, Bool) 
+draw g pID = 
+  let (newDeck, topCard) = drawCards g.deck 1 in
+    (case topCard of 
+      [] -> Debug.crash "error: deck empty"
+      c::cs -> 
+        let (newPlayers, isScore) = addCard c g.players pID in
+        ({ g | deck = newDeck, players = newPlayers}, isScore))
+
+-- Fishing & Go Fish -- 
+
+goFish : Game -> D.Face -> Game 
+goFish g f = 
+  let (drawCard, isScore) = draw g g.current.id in 
+  let newGame = {drawCard | currFish = Nothing,
+                            current = nextPlayer drawCard} in 
+  let 
+    ifScored chk g = 
+      if chk then -- you formed a pair with the card you drew 
+        {g | players = scorePlayers g.players, asks = removeAsk drawCard.current f g.asks, 
+             text = "Go Fish." ++ g.current.name ++ " draws a card and scores!"}
+      else  
+        {g | text = "Go Fish." ++ g.current.name ++ " draws a card."}
+  in 
+  let scored = ifScored isScore newGame in 
+    if isGameOver scored then 
+      {scored | text = scored.text ++ "Game Over!"} -- TODO: better message
+    else 
+      scored 
+
+fish : Game -> Player -> Game 
+fish g player = 
+  (case g.currFish of 
+    Nothing -> {g | text = "Please click on one of your cards first, then a player to ask for that card."}
+    Just f -> let checkHand = remove f player.hand in
+              (case checkHand of 
+                Nothing -> -- Go Fish! 
+                  let newGame = goFish g f in 
+                  {newGame | asks = (g.current, f)::newGame.asks}
+                Just (c, h) -> 
+                  (case remove f g.current.hand of 
+                    Nothing -> Debug.crash "Error"
+                    Just (c1, h1) -> 
+                      let newGame = {g | players = scorePlayers (updateHand (updateHand g.players player.id h) g.current.id h1),
+                                             currFish = Nothing, asks = removeAsk player f (removeAsk g.current f g.asks),
+                                             text = g.current.name ++ " took a card from " ++ player.name ++ " and scored!"} in 
+                        if isGameOver newGame then 
+                          {newGame | text = newGame.text ++ " Game over!"}
+                        else 
+                          {newGame | text = newGame.text ++ " It's still " ++ g.current.name ++ "'s turn."})))
+
+smartAI : Game -> Game
+smartAI g = 
+  (case checkAsks g.current g.asks of 
+    Nothing -> 
+      (case g.current.hand of 
+        [] -> Debug.crash "Error"
+        c::cs -> 
+          let newGame = {g | currFish = Just c.face} in 
+          let bestPlayer = mostCards g.players g.asks g.current.id in 
+            fish newGame bestPlayer) -- TODO: ask for card which has been scored the fewest times?
+    Just (p2, f) -> 
+      let newGame = {g | currFish = Just f} in 
+        smartAI (fish g p2))
+
+-- Initial game setup -- 
 
 dealCards : List Player -> D.Deck -> (List Player, D.Deck)
 dealCards players deck = 
@@ -119,27 +265,7 @@ createGame numPlayers =
         p::rest -> p 
         [] -> Debug.crash "createGame: no players"
   in 
-    { players = players, deck = D.startingDeck, current = curr players, currFish = Nothing, asks = [] }
-
-runGame : Game -> Game  
-runGame g = 
-  let 
-    takeTurn g = 
-      if g.current.id == 1 then 
-        -- TODO: person playing --> wait for input
-        g
-      else 
-        -- TODO: AI turn
-        -- call remove when fishing, use drawCards to draw a card if Go Fish, update hands + score
-        g 
-  in 
-    let 
-      new = takeTurn g 
-    in 
-      if isGameOver new then 
-        new 
-      else 
-        runGame (nextPlayer new)
+    { players = players, deck = D.startingDeck, current = curr players, currFish = Nothing, asks = [], text = "Your turn. Choose a card to fish for by clicking on one of your cards." }
 
 
 
