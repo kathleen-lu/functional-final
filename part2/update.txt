@@ -4,7 +4,7 @@ Progression:
 1) Create simple game engine (one deck, one computer opponent, 3 cards/hand each) with a naive AI that always asks for the first card in its hand and minimal or no graphics
 2) Create "smart" AI that tracks histories of cards other players have asked for or been asked for
 3) Build up graphics to a demo-ready version
-4) Add additional options, as described above, to make the game more complicated and customizable 
+4) Add additional options, such as customising the number of players, decks, starting hand, etc, to make the game more complicated and customizable 
 5) Add more elaborate graphics: e.g. animated shark that takes a card from a player's hand or a fishing reel every time a player must go fish
 
 So far, we have finished the first 2 steps of the five steps outlined in the milestones from our proposal (and copied again above). We've built the game engine though, different from step 1 above, we have three AI

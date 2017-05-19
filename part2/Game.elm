@@ -66,7 +66,7 @@ view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
   let graphic =  Element.toHtml <| Collage.collage 1500 1000 [renderGame model] in 
-  let btn = button [buttonStyle] [ text "Next" ] in 
+  let btn = button [buttonStyle] [ text "Next Turn" ] in 
     div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, btn, display]]
 
 --- attribute styles
