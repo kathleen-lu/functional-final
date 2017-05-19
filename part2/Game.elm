@@ -70,14 +70,16 @@ view model =
   let btn = renderButtonHtml in 
   let moveText = renderMoveTextHtml model in
     div [mainStyle model] [ h1 [titleStyle] [title], 
-                      div [] (otherPlayers ++ [player1, btn, moveText, display])]
+                      div [style [("display", "block")]] otherPlayers,
+                      br [][],
+                      div [] [player1, btn, moveText, display]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
 mainStyle model = 
   let player1 = noMaybes <| List.head model.players in
-  let width = (List.length player1.hand) * 170 in
-    style [ ("width", toString width ++ "px"), ("margin", "auto"), ("display", "block"), 
+  let width = (List.length player1.hand) * 180 in
+    style [ ("width", (toString width) ++ "px"), ("margin", "auto"), ("display", "block"), 
                    ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
@@ -108,16 +110,23 @@ faceDownCardStyle : Attribute msg
 faceDownCardStyle = style [("margin", "2px")]
 
 player1Style : Attribute msg
-player1Style = style [("clear", "both"), ("font-size", "28px")]
+player1Style = style [("clear", "both"), ("font-size", "28px"), ("text-align", "center")]
 
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
   if player.name == "Player2" then
-    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "2%")]
+    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "3%")]
   else if player.name == "Player3" then
-    style [("float", "left"), ("margin-bottom", "30%")]
+    style [("float", "left"), ("margin-bottom", "30%"), ("display", "block")]
   else
     style [("float", "right"), ("margin-top", "5%")]
+
+faceUpHandStyle :  M.Player -> Attribute msg
+faceUpHandStyle player = 
+  let length = (List.length player.hand) in
+  let width = round( (Basics.toFloat length*G.w) *1.5) in
+    style [ ("display", "block"), ("width", (toString width) ++ "px")]
+
 
 --- rendering functions
 renderMoveTextHtml : Model -> Html Msg
@@ -139,7 +148,7 @@ renderHandHtml : Model -> Html Msg
 renderHandHtml model =
   let player1 = noMaybes <| List.head model.players in 
   let htmlcards = List.map (\x -> renderFaceUpHtml x) player1.hand in 
-    div [ class player1.name ] 
+    div [ class player1.name, faceUpHandStyle player1] 
       (htmlcards ++ [div [player1Style] [ text "Player 1"]])
 
 renderFaceUpHtml : D.Card -> Html Msg
