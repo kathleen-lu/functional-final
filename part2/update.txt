@@ -1,2 +1,39 @@
 Milestone 2
 
+Progression:
+1) Create simple game engine (one deck, one computer opponent, 3 cards/hand each) with a naive AI that always asks for the first card in its hand and minimal or no graphics
+2) Create "smart" AI that tracks histories of cards other players have asked for or been asked for
+3) Build up graphics to a demo-ready version
+4) Add additional options, as described above, to make the game more complicated and customizable 
+5) Add more elaborate graphics: e.g. animated shark that takes a card from a player's hand or a fishing reel every time a player must go fish
+
+So far, we have finished the first 2 steps of the five steps outlined in the milestones from our proposal (and copied again above). We've built the game engine though, different from step 1 above, we have three AI
+opponents and 5 cards/hand to start. We also have a "smart" AI that acts as described above. Each time someone 
+unsuccessfully asks for a card from another player, we track this in our game model. If an AI player has
+a card someone has previously asked for, they will then 'remember' to ask that player for the card upon
+their turn. If the AI player does not have any cards previously asked for, they will ask for a random
+(the first) card in their hand from the player with the most unidentified cards in their hand (i.e. 
+the player whose (num cards in hand - num tracked asks) is highest). 
+
+We have also made progress in the graphics/visual rendering of our game. Running elm-make on Game.elm 
+produces the basic illustration, though we will be adding score counters, a "Next Turn" button, 
+the ability to click on one's cards and other players upon the human player's turn, and some
+aesthetic enhancements (e.g. a nice background and moving the instructional text elsewhere). As is,
+all of the graphics, including the individual cards, are coded from scratch rather than saved images. 
+Depending on time constraints, we may have to cut out some of our more ambitious plans in Step 5), e.g.
+to add animation effects.   
+
+To sum up, in our proposal, we initially broke down the project into three components: the mechanics or game engine, the computer AI, and the game's graphics. The mechanics are essentially completed, with the exception of
+Step 4), being able to customize specific features (e.g. the number of opponents, number of decks used, number of cards per hand to start). These customizable options do not add much to the game or the technical aspects
+of the project, so we are currently considering which options to add or drop to keep gameplay smooth.
+
+The game's mechanics work as such: Upon loading the game, it is immediately ready to play, with the
+initial model comprised of an already-randomly shuffled deck and five randomly drawn cards per each player's
+hand. On the player's turn, they must select one of their cards and then one of the other players, each
+via clicking, in order to ask that player if they have any cards of that face value. On each of the
+AI players' turns, the player must click the "Next Turn" button, upon which the AI will automatically 
+make its turn. Text will describe what happened on each turn and give players help on what to do. The
+game ends when either the deck or any player's hand runs out of cards.   
+
+
+
