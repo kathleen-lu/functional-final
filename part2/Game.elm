@@ -68,7 +68,8 @@ view model =
   let display = text (" " ++ toString model) in
   let testHand = [{face=D.Ace, suit=D.Heart}, {face = D.Four, suit = D.Spade}, {face = D.Seven, suit = D.Clover}, {face = D.Six, suit = D.Diamond}] in
   let graphic =  Element.toHtml <| Collage.collage 1500 1500 [renderGame model] in 
-    div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, display]]
+  let btn = button [ ] [ text "Next" ] in 
+    div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, btn, display]]
 
 --- attribute styles
 mainStyle : Attribute msg
