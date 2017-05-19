@@ -65,17 +65,21 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let testHand = [{face=D.Ace, suit=D.Heart}, {face = D.Four, suit = D.Spade}, {face = D.Seven, suit = D.Clover}, {face = D.Six, suit = D.Diamond}] in
-  let graphic =  Element.toHtml <| Collage.collage 1500 1500 [renderGame model] in 
-  let btn = button [ ] [ text "Next" ] in 
+  let graphic =  Element.toHtml <| Collage.collage 1500 1000 [renderGame model] in 
+  let btn = button [buttonStyle] [ text "Next" ] in 
     div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, btn, display]]
 
 --- attribute styles
 mainStyle : Attribute msg
-mainStyle = style [("width", "750px"), ("margin", "5%"), ("font-family", "sans-serif"), ("text-align", "center")]
+mainStyle = style [ ("width", "750px"), ("margin", "auto"), ("display", "block"), 
+                   ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
 titleStyle = style [("text-align", "center")]
+
+buttonStyle : Attribute msg
+buttonStyle = style [ ("font-size", "28px"), ("border", "none"), 
+                      ("margin", "auto"), ("background-color", "#dddddd")]
 
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
@@ -88,18 +92,17 @@ shuffleDeck deck rList =
   List.map2 (,) rList deck |> List.sortBy Tuple.first |> List.unzip |> Tuple.second 
 
 
---- graphics functions that i moved because of import things
--- anton this is what you should call in order to generate the whole game cool
+--- graphics functions moved because of import things
 renderGame : Model -> Collage.Form
 renderGame model = 
   let ps = renderPlayerHands model.players 0 in
   let text = renderMoveText model in
-    Collage.group [ps,text]
+    Collage.move (-G.w*2,-G.h) <| Collage.group [ps,text]
 
 renderMoveText : Model -> Collage.Form
 renderMoveText model =
   let move = model.text in 
-    Collage.move (G.h,G.w) <|
+    Collage.move (G.h,-G.h*2) <|
       Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString move
 
 --TODO 
