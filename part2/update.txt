@@ -21,7 +21,7 @@ the ability to click on one's cards and other players upon the human player's tu
 aesthetic enhancements (e.g. a nice background and moving the instructional text elsewhere). As is,
 all of the graphics, including the individual cards, are coded from scratch rather than saved images. 
 Depending on time constraints, we may have to cut out some of our more ambitious plans in Step 5), e.g.
-to add animation effects.   
+to add animation effects. For the moment, instead of making the card image clickable, we have included buttons to lead to the next action in the game. This is a simpler way of implementing our original idea and is for testing purposes. For the final iteration, we hope to make the cards/images clickable as originally proposed.
 
 To sum up, in our proposal, we initially broke down the project into three components: the mechanics or game engine, the computer AI, and the game's graphics. The mechanics are essentially completed, with the exception of
 Step 4), being able to customize specific features (e.g. the number of opponents, number of decks used, number of cards per hand to start). These customizable options do not add much to the game or the technical aspects

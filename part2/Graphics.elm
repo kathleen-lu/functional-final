@@ -6,6 +6,8 @@ import Color
 import Collage
 import Element exposing(Element)
 import Text exposing(fromString)
+import Html.Attributes as Attribute exposing(style, shape, coords)
+import Html exposing (..)
 
 -- constants
 red = Collage.filled Color.red
@@ -134,6 +136,14 @@ faceToString face =
     Jack -> "J"
     Queen -> "Q"
     King -> "K"
+
+cardToString : Card -> String
+cardToString card = 
+  case card.suit of
+    Heart -> faceToString card.face ++ " of Hearts"
+    Clover -> faceToString card.face ++ " of Clubs"
+    Diamond -> faceToString card.face ++ " of Diamonds"
+    Spade -> faceToString card.face ++ " of Spades"
 
 -- TODO iteration 2 : add in the number of symbols according to card
 faceToInt : Face -> Int 

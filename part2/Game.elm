@@ -11,7 +11,7 @@ import Text
 import String exposing(..)
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Html.Attributes as Attribute exposing(style)
+import Html.Attributes as Attribute exposing(style, shape, coords)
 
 ----------------------------------------------------------------------
 
@@ -65,9 +65,10 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let graphic =  Element.toHtml <| Collage.collage 1500 1000 [renderGame model] in 
+  let graphic = Element.toHtml <| Collage.collage 1500 1000 [renderGame model] in 
   let btn = button [buttonStyle] [ text "Next Turn" ] in 
-    div [mainStyle] [h1 [titleStyle] [title], div [] [graphic, btn, display]]
+    div [mainStyle] [h1 [titleStyle] [title], div [] 
+    ([graphic, btn] ++ (playerHandButtons model) ++ (playerButtons model))]
 
 --- attribute styles
 mainStyle : Attribute msg
@@ -79,7 +80,7 @@ titleStyle = style [("text-align", "center")]
 
 buttonStyle : Attribute msg
 buttonStyle = style [ ("font-size", "28px"), ("border", "none"), 
-                      ("margin", "auto"), ("background-color", "#dddddd")]
+                      ("margin", "3px"), ("background-color", "#dddddd")]
 
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
@@ -91,6 +92,37 @@ shuffleDeck : D.Deck -> List Int -> D.Deck
 shuffleDeck deck rList = 
   List.map2 (,) rList deck |> List.sortBy Tuple.first |> List.unzip |> Tuple.second 
 
+--- button functions ---
+playerHandButtons : Model -> List (Html Msg)
+playerHandButtons model = 
+  let player = noMaybes <| List.head model.players in 
+    phbHelper player.hand
+
+playerButtons : Model -> List (Html Msg)
+playerButtons model = 
+  pbHelper model.players 
+
+pbHelper : List M.Player -> List (Html Msg)
+pbHelper players = 
+  case players of 
+    [] -> []
+    fst::rest ->
+      if fst.name /= "Player1" then
+        (button [buttonStyle] [text <| prettyName fst])::(pbHelper rest)
+      else 
+        pbHelper rest
+
+noMaybes : Maybe M.Player -> M.Player
+noMaybes player = 
+  case player of
+    Nothing -> Debug.crash "ugh"
+    Just a -> a
+
+phbHelper : D.Deck -> List (Html Msg)
+phbHelper deck = 
+  case deck of
+    [] -> []
+    fst::rest -> (button [buttonStyle] [text <| cardToString fst])::(phbHelper rest)
 
 --- graphics functions moved because of import things
 renderGame : Model -> Collage.Form
@@ -151,8 +183,11 @@ renderPlayerNameHand player rotate isFaceUp =
     in 
     Collage.rotate (degrees (rotate*90)) <| Collage.group [handInner, pname]
 
+prettyName : M.Player -> String
+prettyName player = 
+  (dropRight 1 player.name) ++ " " ++ (right 1 player.name)
 
 renderPlayerName : M.Player -> Collage.Form
 renderPlayerName player =
-  let cosmetics = (dropRight 1 player.name) ++ " " ++ (right 1 player.name) in 
+  let cosmetics = prettyName player in 
     Collage.toForm <| Element.justified <| Text.height 25 <| Text.fromString cosmetics 
