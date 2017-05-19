@@ -191,9 +191,9 @@ goFish g f =
     ifScored chk g = 
       if chk then -- you formed a pair with the card you drew 
         {g | players = scorePlayers g.players, asks = removeAsk drawCard.current f g.asks, 
-             text = "Go Fish." ++ g.current.name ++ " draws a card and scores!"}
+             text = "Go Fish. " ++ g.current.name ++ " draws a card and scores!"}
       else  
-        {g | text = "Go Fish." ++ g.current.name ++ " draws a card."}
+        {g | text = "Go Fish. " ++ g.current.name ++ " draws a card."}
   in 
   let scored = ifScored isScore newGame in 
     if isGameOver scored then 

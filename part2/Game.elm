@@ -11,7 +11,7 @@ import Text
 import String exposing(..)
 import Html exposing (..)
 import Html.Events exposing (onClick)
-import Html.Attributes as Attribute exposing(style, shape, coords)
+import Html.Attributes exposing(..)
 
 ----------------------------------------------------------------------
 
@@ -65,22 +65,30 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let graphic = Element.toHtml <| Collage.collage 1500 1000 [renderGame model] in 
-  let btn = button [buttonStyle] [ text "Next Turn" ] in 
-    div [mainStyle] [h1 [titleStyle] [title], div [] 
-    ([graphic, btn] ++ (playerHandButtons model) ++ (playerButtons model))]
+  let otherPlayers = renderFacedownHandHtml model in
+  let player1 = renderHandHtml model in
+  let btn = renderButtonHtml in 
+  let moveText = renderMoveTextHtml model in
+    div [mainStyle model] [ h1 [titleStyle] [title], 
+                      div [] (otherPlayers ++ [player1, btn, moveText, display])]
 
 --- attribute styles
-mainStyle : Attribute msg
-mainStyle = style [ ("width", "750px"), ("margin", "auto"), ("display", "block"), 
+mainStyle : Model -> Attribute msg
+mainStyle model = 
+  let player1 = noMaybes <| List.head model.players in
+  let width = (List.length player1.hand) * 170 in
+    style [ ("width", toString width ++ "px"), ("margin", "auto"), ("display", "block"), 
                    ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
-titleStyle = style [("text-align", "center")]
+titleStyle = style [ ("text-align", "center") ]
 
 buttonStyle : Attribute msg
-buttonStyle = style [ ("font-size", "28px"), ("border", "none"), 
-                      ("margin", "3px"), ("background-color", "#dddddd")]
+buttonStyle = style [ ("font-size", "28px"), ("padding", "1%"), ("border", "none"), 
+                      ("margin", "3%"), ("background-color", "#dddddd")]
+
+moveTextStyle : Attribute msg
+moveTextStyle = style [ ("font-size", "30px") ]
 
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
@@ -92,102 +100,87 @@ shuffleDeck : D.Deck -> List Int -> D.Deck
 shuffleDeck deck rList = 
   List.map2 (,) rList deck |> List.sortBy Tuple.first |> List.unzip |> Tuple.second 
 
---- button functions ---
-playerHandButtons : Model -> List (Html Msg)
-playerHandButtons model = 
-  let player = noMaybes <| List.head model.players in 
-    phbHelper player.hand
+--- player styles
+faceUpCardStyle : Attribute msg 
+faceUpCardStyle = style [("float", "left"), ("margin", "2px")]
 
-playerButtons : Model -> List (Html Msg)
-playerButtons model = 
-  pbHelper model.players 
+faceDownCardStyle : Attribute msg 
+faceDownCardStyle = style [("margin", "2px")]
 
-pbHelper : List M.Player -> List (Html Msg)
-pbHelper players = 
-  case players of 
-    [] -> []
-    fst::rest ->
-      if fst.name /= "Player1" then
-        (button [buttonStyle] [text <| prettyName fst])::(pbHelper rest)
-      else 
-        pbHelper rest
+player1Style : Attribute msg
+player1Style = style [("clear", "both"), ("font-size", "28px")]
 
-noMaybes : Maybe M.Player -> M.Player
-noMaybes player = 
-  case player of
-    Nothing -> Debug.crash "ugh"
-    Just a -> a
+faceDownHandStyle : M.Player -> Attribute msg
+faceDownHandStyle player =
+  if player.name == "Player2" then
+    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "2%")]
+  else if player.name == "Player3" then
+    style [("float", "left"), ("margin-bottom", "30%")]
+  else
+    style [("float", "right"), ("margin-top", "5%")]
 
-phbHelper : D.Deck -> List (Html Msg)
-phbHelper deck = 
-  case deck of
-    [] -> []
-    fst::rest -> (button [buttonStyle] [text <| cardToString fst])::(phbHelper rest)
-
---- graphics functions moved because of import things
-renderGame : Model -> Collage.Form
-renderGame model = 
-  let ps = renderPlayerHands model.players 0 in
-  let text = renderMoveText model in
-    Collage.move (-G.w*2,-G.h) <| Collage.group [ps,text]
-
-renderMoveText : Model -> Collage.Form
-renderMoveText model =
+--- rendering functions
+renderMoveTextHtml : Model -> Html Msg
+renderMoveTextHtml model =
   let move = model.text in 
-    Collage.move (G.h,-G.h*2) <|
-      Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString move
+    div [class "move-text", moveTextStyle] [text move]
+
+renderButtonHtml : Html Msg
+renderButtonHtml = button [buttonStyle, onClick NextTurn] [ text "Next Turn" ]
 
 --TODO 
---renderScore : Model -> Collage.Form
---renderScore model = 
+--renderScoreHtml : Model -> Html Msg
+--renderScoreHtml model = 
 --  let score = "score: " ++ toString model.score.points in 
 --    Collage.move (G.h,G.w) <|
 --      Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString score
 
-renderPlayerHands : List M.Player -> Float -> Collage.Form
-renderPlayerHands players rotate =
-  case players of
-    [] -> G.emptyCollage
-    fst::rst ->
-      let applyMove = 
-          if rotate == 0 then
-            Collage.move (-G.w/2.5,-G.h/2.5) 
-          else if rotate == 1 then
-            Collage.move (-G.w*2,-G.h/2.5)
-          else if rotate == 2 then
-            Collage.move (G.w*4,G.h*3) 
-          else 
-            Collage.move (G.w*5.5,G.h*2.5) 
-      in
-      if fst.name == "Player1" then
-        Collage.group [ applyMove <| renderPlayerNameHand fst rotate True, 
-                        renderPlayerHands rst (rotate+1)
-                      ]
-      else 
-        Collage.group [ applyMove <| renderPlayerNameHand fst rotate False,
-                        renderPlayerHands rst (rotate+1)
-                      ]
+renderHandHtml : Model -> Html Msg
+renderHandHtml model =
+  let player1 = noMaybes <| List.head model.players in 
+  let htmlcards = List.map (\x -> renderFaceUpHtml x) player1.hand in 
+    div [ class player1.name ] 
+      (htmlcards ++ [div [player1Style] [ text "Player 1"]])
 
-renderPlayerNameHand : M.Player -> Float -> Bool -> Collage.Form
-renderPlayerNameHand player rotate isFaceUp =
-  let applyMove = 
-    if (round rotate) % 2 == 0 then
-      Collage.move (G.w*2,-G.h)
-    else 
-      Collage.move (G.w*2, G.h)
-    in 
-  let pname = applyMove <| renderPlayerName player in 
-  let handInner =
-    if isFaceUp then G.renderHand player.hand
-    else G.renderFacedownHand player.hand
-    in 
-    Collage.rotate (degrees (rotate*90)) <| Collage.group [handInner, pname]
+renderFaceUpHtml : D.Card -> Html Msg
+renderFaceUpHtml card = 
+  div [ class (cardClass card), faceUpCardStyle, onClick (Choose card)] 
+    [Element.toHtml <| Collage.collage G.w G.h <| [renderFaceUp card]]
 
+renderFaceDownHtml : D.Card -> Bool -> Html Msg
+renderFaceDownHtml card isSideways =
+  if isSideways then 
+    div [faceDownCardStyle] 
+      [Element.toHtml <| Collage.collage G.h G.w <| [Collage.rotate (degrees 90) <| renderFaceDown]]
+  else
+    div [faceUpCardStyle] 
+      [Element.toHtml <| Collage.collage G.w G.h <| [renderFaceDown]]
+
+renderFacedownHandHtml : Model -> List(Html Msg)
+renderFacedownHandHtml model = 
+  let players = model.players in 
+    rfdhHelper players
+
+rfdhHelper : List M.Player -> List(Html Msg)
+rfdhHelper players = 
+  List.map 
+    (\player -> 
+      if player.name /= "Player1" then
+        let length = List.length player.hand in 
+        let isSideways = if player.name == "Player2" || player.name == "Player4" then True else False in
+        let playerName = [div [player1Style][text <| prettyName player]] in
+          div [ class player.name, (faceDownHandStyle player), onClick (Fish player)] 
+            ((List.map (\x -> renderFaceDownHtml x isSideways) player.hand) ++ playerName)
+      else div [] []) 
+    players
+
+--- misc helper functions
 prettyName : M.Player -> String
 prettyName player = 
   (dropRight 1 player.name) ++ " " ++ (right 1 player.name)
 
-renderPlayerName : M.Player -> Collage.Form
-renderPlayerName player =
-  let cosmetics = prettyName player in 
-    Collage.toForm <| Element.justified <| Text.height 25 <| Text.fromString cosmetics 
+noMaybes : Maybe M.Player -> M.Player
+noMaybes player = 
+  case player of
+    Nothing -> Debug.crash "should not take this case in noMaybes"
+    Just a -> a

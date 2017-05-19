@@ -6,7 +6,7 @@ import Color
 import Collage
 import Element exposing(Element)
 import Text exposing(fromString)
-import Html.Attributes as Attribute exposing(style, shape, coords)
+import Html.Attributes as Attribute exposing(..)
 import Html exposing (..)
 
 -- constants
@@ -20,14 +20,6 @@ cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
 c = Color.rgb 96 134 229
 
 -- functions
-renderHand : List Card -> Collage.Form
-renderHand cards = 
-  case cards of
-    [] -> emptyCollage -- lol
-    fst::rest -> 
-      Collage.group [ renderFaceUp fst,
-                      Collage.move (w*1.1,0) <| renderHand rest]
-
 renderFacedownHand : List Card -> Collage.Form
 renderFacedownHand cards = 
   case cards of
@@ -144,6 +136,16 @@ cardToString card =
     Clover -> faceToString card.face ++ " of Clubs"
     Diamond -> faceToString card.face ++ " of Diamonds"
     Spade -> faceToString card.face ++ " of Spades"
+
+-- generates the class for the card to be used in the div
+cardClass : Card -> String
+cardClass card = 
+  case card.suit of
+    Heart -> faceToString card.face ++ "-hearts"
+    Clover -> faceToString card.face ++ "-clubs"
+    Diamond -> faceToString card.face ++ "-diamonds"
+    Spade -> faceToString card.face ++ "-spades"
+
 
 -- TODO iteration 2 : add in the number of symbols according to card
 faceToInt : Face -> Int 
