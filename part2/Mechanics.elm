@@ -9,7 +9,7 @@ import Random
 type alias Hand = List D.Card 
 type alias Score = { pairs: List D.Face, points: Int }
 type alias Player = { name : String, id : Int, hand : Hand, score : Score }
-type alias Game = { players : List Player, deck : D.Deck, current : Player, currFish : Maybe D.Face, asks : List (Player, D.Face), text : String }
+type alias Game = { players : List Player, deck : D.Deck, current : Player, currFish : Maybe D.Face, asks : List (Player, D.Face), text : String, isGameOver : Bool }
 
 -- Hand functions (checking for a card/removing, updating) -- 
 
@@ -50,7 +50,7 @@ scorePlayer player =
         c::cs ->  case remove c.face cs of 
                     Nothing ->  let (newHand, newScore) = lp cs score in 
                                 (c::newHand, newScore)
-                    Just (card, h) -> lp h (updateScore c.face score)
+                    Just (card, h) -> lp h (updateScore card.face score)
   in 
     let (newHand, newScore) = lp player.hand player.score in 
     { player | hand = newHand, score = newScore }
@@ -60,6 +60,24 @@ scorePlayers players =
   case players of 
     [] -> []
     p::ps -> (scorePlayer p)::(scorePlayers ps)
+
+scoreGame : Game -> Game 
+scoreGame g = 
+  let newPlayers = scorePlayers g.players in 
+  {g | players = newPlayers, current = findPlayer newPlayers g.current.id}
+
+findWinner : Game -> Player 
+findWinner g =
+  let 
+    findMaxScore players maxs maxp = 
+      (case players of 
+        [] -> maxp 
+        p::ps ->  if p.score.points > maxs then 
+                    findMaxScore ps p.score.points p
+                  else 
+                    findMaxScore ps maxs maxp)
+  in 
+    findMaxScore g.players 0 g.current
 
 -- Asks -- 
 
@@ -190,14 +208,14 @@ goFish g f =
   let 
     ifScored chk g = 
       if chk then -- you formed a pair with the card you drew 
-        {g | players = scorePlayers g.players, asks = removeAsk drawCard.current f g.asks, 
-             text = "Go Fish. " ++ g.current.name ++ " draws a card and scores!"}
+        scoreGame {g | asks = removeAsk drawCard.current f g.asks, 
+                       text = g.text ++ "Go Fish. " ++ drawCard.current.name ++ " draws a card and scores!"}
       else  
-        {g | text = "Go Fish. " ++ g.current.name ++ " draws a card."}
+        {g | text = g.text ++ "Go Fish. " ++ drawCard.current.name ++ " draws a card."}
   in 
   let scored = ifScored isScore newGame in 
     if isGameOver scored then 
-      {scored | text = scored.text ++ "Game Over!"} -- TODO: better message
+      {scored | text = scored.text ++ "Game Over!", isGameOver = True} -- TODO: better message
     else 
       scored 
 
@@ -205,25 +223,27 @@ fish : Game -> Player -> Game
 fish g player = 
   (case g.currFish of 
     Nothing -> {g | text = "Please click on one of your cards first, then a player to ask for that card."}
-    Just f -> let checkHand = remove f player.hand in
+    Just f -> let newG = {g | text = g.current.name ++ " asked for a " ++ toString f ++ " from " ++ player.name ++ ". "} in
+              let checkHand = remove f player.hand in
               (case checkHand of 
                 Nothing -> -- Go Fish! 
-                  let newGame = goFish g f in 
+                  let newGame = goFish newG f in 
                   {newGame | asks = (g.current, f)::newGame.asks}
                 Just (c, h) -> 
                   (case remove f g.current.hand of 
                     Nothing -> Debug.crash "Error"
                     Just (c1, h1) -> 
-                      let newGame = {g | players = scorePlayers (updateHand (updateHand g.players player.id h) g.current.id h1),
-                                             currFish = Nothing, asks = removeAsk player f (removeAsk g.current f g.asks),
-                                             text = g.current.name ++ " took a card from " ++ player.name ++ " and scored!"} in 
+                      let newGame = scoreGame {g | players = updateHand (updateHand g.players player.id h) g.current.id (c::c1::h1),
+                                                   currFish = Nothing, asks = removeAsk player f (removeAsk g.current f g.asks),
+                                                   text = newG.text ++ g.current.name ++ " took a card from " ++ player.name ++ " and scored!"} in 
                         if isGameOver newGame then 
-                          {newGame | text = newGame.text ++ " Game over!"}
+                          {newGame | text = newGame.text ++ " Game over!", isGameOver = True}
                         else 
                           {newGame | text = newGame.text ++ " It's still " ++ g.current.name ++ "'s turn."})))
 
-smartAI : Game -> Game
-smartAI g = 
+
+smartMove : Game -> Game
+smartMove g = 
   (case checkAsks g.current g.asks of 
     Nothing -> 
       (case g.current.hand of 
@@ -234,7 +254,18 @@ smartAI g =
             fish newGame bestPlayer) -- TODO: ask for card which has been scored the fewest times?
     Just (p2, f) -> 
       let newGame = {g | currFish = Just f} in 
-        smartAI (fish g p2))
+        fish newGame p2) 
+
+smartAI : Game -> Game
+smartAI g = 
+  let afterMove = smartMove g in 
+  if afterMove.isGameOver then 
+    afterMove 
+  else if afterMove.current.id == g.current.id then 
+    let again = smartAI afterMove in  
+      {again | text = afterMove.text ++ " " ++ again.text}
+  else 
+    afterMove 
 
 -- Initial game setup -- 
 
@@ -252,7 +283,7 @@ createPlayers num players =
     players  
   else
     let 
-      newPlayer = { name = "Player" ++ toString num, id = num, hand = [], score = { pairs = [], points = 0} } 
+      newPlayer = { name = "Player " ++ toString num, id = num, hand = [], score = { pairs = [], points = 0} } 
     in 
       createPlayers (num - 1) (newPlayer::players)
 
@@ -265,7 +296,7 @@ createGame numPlayers =
         p::rest -> p 
         [] -> Debug.crash "createGame: no players"
   in 
-    { players = players, deck = D.startingDeck, current = curr players, currFish = Nothing, asks = [], text = "Your turn. Choose a card to fish for by clicking on one of your cards." }
+    { players = players, deck = D.startingDeck, current = curr players, currFish = Nothing, asks = [], text = "Your turn. Choose a card to fish for by clicking on one of your cards.", isGameOver = False }
 
 
 
