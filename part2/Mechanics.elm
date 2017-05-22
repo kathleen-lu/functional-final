@@ -283,7 +283,7 @@ createPlayers num players =
     players  
   else
     let 
-      newPlayer = { name = "Player " ++ toString num, id = num, hand = [], score = { pairs = [], points = 0} } 
+      newPlayer = { name = "Player" ++ toString num, id = num, hand = [], score = { pairs = [], points = 0} } 
     in 
       createPlayers (num - 1) (newPlayer::players)
 
