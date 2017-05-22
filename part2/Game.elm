@@ -110,7 +110,7 @@ faceDownCardStyle : Attribute msg
 faceDownCardStyle = style [("margin", "2px")]
 
 player1Style : Attribute msg
-player1Style = style [("clear", "both"), ("font-size", "28px"), ("text-align", "center")]
+player1Style = style [("clear", "both"), ("font-size", "20px"), ("text-align", "center")]
 
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
@@ -127,7 +127,6 @@ faceUpHandStyle player =
   let width = round( (Basics.toFloat length*G.w) *1.5) in
     style [ ("display", "block"), ("width", (toString width) ++ "px")]
 
-
 --- rendering functions
 renderMoveTextHtml : Model -> Html Msg
 renderMoveTextHtml model =
@@ -137,19 +136,12 @@ renderMoveTextHtml model =
 renderButtonHtml : Html Msg
 renderButtonHtml = button [buttonStyle, onClick NextTurn] [ text "Next Turn" ]
 
---TODO 
---renderScoreHtml : Model -> Html Msg
---renderScoreHtml model = 
---  let score = "score: " ++ toString model.score.points in 
---    Collage.move (G.h,G.w) <|
---      Collage.toForm <| Element.justified <| Text.height 30 <| Text.fromString score
-
 renderHandHtml : Model -> Html Msg
 renderHandHtml model =
   let player1 = noMaybes <| List.head model.players in 
   let htmlcards = List.map (\x -> renderFaceUpHtml x) player1.hand in 
     div [ class player1.name, faceUpHandStyle player1] 
-      (htmlcards ++ [div [player1Style] [ text "Player 1"]])
+      (htmlcards ++ [div [player1Style] [ text <| nameAndScore player1]])
 
 renderFaceUpHtml : D.Card -> Html Msg
 renderFaceUpHtml card = 
@@ -177,16 +169,24 @@ rfdhHelper players =
       if player.name /= "Player1" then
         let length = List.length player.hand in 
         let isSideways = if player.name == "Player2" || player.name == "Player4" then True else False in
-        let playerName = [div [player1Style][text <| prettyName player]] in
+        let playerName = [div [player1Style][text <| nameAndScore player]] in
           div [ class player.name, (faceDownHandStyle player), onClick (Fish player)] 
             ((List.map (\x -> renderFaceDownHtml x isSideways) player.hand) ++ playerName)
       else div [] []) 
     players
 
 --- misc helper functions
+nameAndScore : M.Player -> String
+nameAndScore player = 
+  (prettyName player) ++ " " ++ (scoreString player)
+
 prettyName : M.Player -> String
 prettyName player = 
   (dropRight 1 player.name) ++ " " ++ (right 1 player.name)
+
+scoreString : M.Player -> String
+scoreString player = 
+  "Score: " ++ (toString player.score.points)
 
 noMaybes : Maybe M.Player -> M.Player
 noMaybes player = 
