@@ -90,14 +90,20 @@ removeAsk p f asks =
                             else 
                               (player, face)::(removeAsk p f rest)
 
-checkAsks : Player -> List (Player, D.Face) -> Maybe (Player, D.Face)
-checkAsks p asks = 
+checkAsks : Player -> List (Player, D.Face) -> Bool -> Maybe (Player, D.Face)
+checkAsks p asks smart = 
   (case asks of 
     [] -> Nothing 
     (p2, f)::rest -> 
       (case remove f p.hand of 
-        Nothing -> checkAsks p rest 
-        Just _ -> Just (p2, f)))
+        Nothing -> if smart then 
+                     checkAsks p rest smart
+                   else 
+                      Just (p2, f)
+        Just _ -> if smart then 
+                    Just (p2, f)
+                  else 
+                    checkAsks p rest smart))
 
 asksList : List (Player, D.Face) -> List Int -> List Int
 asksList asks numAsks = 
@@ -223,7 +229,7 @@ fish : Game -> Player -> Game
 fish g player = 
   (case g.currFish of 
     Nothing -> {g | text = "Please click on one of your cards first, then a player to ask for that card."}
-    Just f -> let newG = {g | text = g.current.name ++ " asked for a " ++ toString f ++ " from " ++ player.name ++ ". "} in
+    Just f -> let newG = {g | text = "Player " ++ toString g.current.id ++ " asked for a " ++ toString f ++ " from Player " ++ toString player.id ++ ". "} in
               let checkHand = remove f player.hand in
               (case checkHand of 
                 Nothing -> -- Go Fish! 
@@ -235,16 +241,15 @@ fish g player =
                     Just (c1, h1) -> 
                       let newGame = scoreGame {g | players = updateHand (updateHand g.players player.id h) g.current.id (c::c1::h1),
                                                    currFish = Nothing, asks = removeAsk player f (removeAsk g.current f g.asks),
-                                                   text = newG.text ++ g.current.name ++ " took a card from " ++ player.name ++ " and scored!"} in 
+                                                   text = newG.text ++ "Player " ++ toString g.current.id ++ " took a card from Player " ++ toString player.id ++ " and scored!"} in 
                         if isGameOver newGame then 
                           {newGame | text = newGame.text ++ " Game over!", isGameOver = True}
                         else 
-                          {newGame | text = newGame.text ++ " It's still " ++ g.current.name ++ "'s turn."})))
+                          {newGame | text = newGame.text ++ " It's still Player " ++ toString g.current.id ++ "'s turn."})))
 
-
-smartMove : Game -> Game
-smartMove g = 
-  (case checkAsks g.current g.asks of 
+makeMove : Game -> Bool -> Game 
+makeMove g smart = 
+  (case checkAsks g.current g.asks smart of 
     Nothing -> 
       (case g.current.hand of 
         [] -> Debug.crash "Error"
@@ -254,11 +259,22 @@ smartMove g =
             fish newGame bestPlayer) -- TODO: ask for card which has been scored the fewest times?
     Just (p2, f) -> 
       let newGame = {g | currFish = Just f} in 
-        fish newGame p2) 
+        fish newGame p2)
+
+decideMove : Game -> Game
+decideMove g = 
+  (case g.current.hand of 
+    c::[] -> -- if one card in hand & losing, make a bad move on purpose
+      let winner = findWinner g in 
+      if winner.id /= g.current.id && winner.score.points > g.current.score.points then 
+        makeMove g False
+      else 
+        makeMove g True
+    _ -> makeMove g True)
 
 smartAI : Game -> Game
 smartAI g = 
-  let afterMove = smartMove g in 
+  let afterMove = decideMove g in 
   if afterMove.isGameOver then 
     afterMove 
   else if afterMove.current.id == g.current.id then 

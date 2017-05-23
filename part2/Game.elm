@@ -27,7 +27,7 @@ main =
 type alias Model = M.Game 
 -- { players : List Player, deck : D.Deck, current : Player, currFish : Face, asks : List (Player, Face), text : String }
 
-type Msg = NoOp | StartGame (List Int) | Choose D.Card | Fish M.Player | NextTurn 
+type Msg = NoOp | StartGame (List Int) | Choose D.Card | Fish M.Player | NextTurn | Restart
 
 init : (Model, Cmd Msg)
 init = (initialModel, randomList StartGame)
@@ -44,21 +44,25 @@ update msg model =
     NoOp -> (model, Cmd.none)
     StartGame ranList -> 
       let newDeck = shuffleDeck D.startingDeck ranList in
-      let 
-        (newPlayers, resDeck) = M.dealCards model.players newDeck 
-      in 
+      let (newPlayers, resDeck) = M.dealCards model.players newDeck in
+      let newGame = {model | players = newPlayers, deck = resDeck} in
+        --(M.scoreGame newGame, Cmd.none)
         ({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
     Choose card ->
       ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card."}, Cmd.none)
     Fish player -> 
-      let newGame = M.fish model player in
-        (newGame, Cmd.none)
+      if player.id == model.current.id then
+        ({model | text = "You can't ask for a card from yourself!"}, Cmd.none)
+      else 
+        let newGame = M.fish model player in
+          (newGame, Cmd.none)
     NextTurn -> 
       if model.current.id == 1 then 
         ({model | text = "It's your turn. Please click on one of your cards. Click the Next Turn button only on AI turns."}, Cmd.none)
       else 
         let newGame = M.smartAI model in 
           (newGame, Cmd.none)
+    Restart -> init 
 
 
 view : Model -> Html Msg
