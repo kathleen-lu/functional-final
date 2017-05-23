@@ -95,15 +95,18 @@ checkAsks p asks smart =
   (case asks of 
     [] -> Nothing 
     (p2, f)::rest -> 
-      (case remove f p.hand of 
-        Nothing -> if smart then 
-                     checkAsks p rest smart
-                   else 
+      if p2.id == p.id then 
+        checkAsks p rest smart 
+      else 
+        (case remove f p.hand of 
+          Nothing -> if smart then 
+                       checkAsks p rest smart
+                     else 
+                        Just (p2, f)
+          Just _ -> if smart then 
                       Just (p2, f)
-        Just _ -> if smart then 
-                    Just (p2, f)
-                  else 
-                    checkAsks p rest smart))
+                    else 
+                      checkAsks p rest smart))
 
 asksList : List (Player, D.Face) -> List Int -> List Int
 asksList asks numAsks = 
@@ -215,13 +218,13 @@ goFish g f =
     ifScored chk g = 
       if chk then -- you formed a pair with the card you drew 
         scoreGame {g | asks = removeAsk drawCard.current f g.asks, 
-                       text = g.text ++ "Go Fish. " ++ drawCard.current.name ++ " draws a card and scores!"}
+                       text = g.text ++ "Go Fish. Player " ++ toString drawCard.current.id ++ " draws a card and scores!"}
       else  
-        {g | text = g.text ++ "Go Fish. " ++ drawCard.current.name ++ " draws a card."}
+        {g | text = g.text ++ "Go Fish. Player " ++ toString drawCard.current.id ++ " draws a card."}
   in 
   let scored = ifScored isScore newGame in 
     if isGameOver scored then 
-      {scored | text = scored.text ++ "Game Over!", isGameOver = True} -- TODO: better message
+      {scored | text = scored.text ++ "Game Over!", isGameOver = True}
     else 
       scored 
 
@@ -256,7 +259,7 @@ makeMove g smart =
         c::cs -> 
           let newGame = {g | currFish = Just c.face} in 
           let bestPlayer = mostCards g.players g.asks g.current.id in 
-            fish newGame bestPlayer) -- TODO: ask for card which has been scored the fewest times?
+            fish newGame bestPlayer) 
     Just (p2, f) -> 
       let newGame = {g | currFish = Just f} in 
         fish newGame p2)

@@ -49,7 +49,7 @@ update msg model =
         (M.scoreGame newGame, Cmd.none)
         --({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
     Choose card ->
-      ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card."}, Cmd.none)
+      ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card, or change your selection by clicking on another card."}, Cmd.none)
     Fish player -> 
       if player.id == model.current.id then
         ({model | text = "You can't ask for a card from yourself!"}, Cmd.none)
