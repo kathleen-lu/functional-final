@@ -46,8 +46,8 @@ update msg model =
       let newDeck = shuffleDeck D.startingDeck ranList in
       let (newPlayers, resDeck) = M.dealCards model.players newDeck in
       let newGame = {model | players = newPlayers, deck = resDeck} in
-        --(M.scoreGame newGame, Cmd.none)
-        ({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
+        (M.scoreGame newGame, Cmd.none)
+        --({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
     Choose card ->
       ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card."}, Cmd.none)
     Fish player -> 
