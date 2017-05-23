@@ -65,21 +65,23 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let otherPlayers = renderFacedownHandHtml model in
-  let player1 = renderHandHtml model in
+  let players = renderFacedownHandHtml model in
+  --let player1 = renderHandHtml model in
   let btn = renderButtonHtml in 
   let moveText = renderMoveTextHtml model in
     div [mainStyle model] [ h1 [titleStyle] [title], 
-                      div [style [("display", "block")]] otherPlayers,
-                      br [][],
-                      div [] [player1, btn, moveText, display]]
+                      div [style [("display", "block")]] players,
+                      div [] [btn, moveText, display]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
 mainStyle model = 
   let player1 = noMaybes <| List.head model.players in
-  let width = (List.length player1.hand) * 180 in
-    style [ ("width", (toString width) ++ "px"), ("margin", "auto"), ("display", "block"), 
+  let player3 = getPlayer3 model.players in 
+  let width1 = (List.length player1.hand) * 180 in
+  let width3 = (List.length player3.hand) * 180 in
+    style [ ("width", (toString <| Basics.max width1 width3) ++ "px"), 
+                   ("margin", "auto"), ("display", "block"), 
                    ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
@@ -136,9 +138,8 @@ renderMoveTextHtml model =
 renderButtonHtml : Html Msg
 renderButtonHtml = button [buttonStyle, onClick NextTurn] [ text "Next Turn" ]
 
-renderHandHtml : Model -> Html Msg
-renderHandHtml model =
-  let player1 = noMaybes <| List.head model.players in 
+renderHandHtml : M.Player -> Html Msg
+renderHandHtml player1 =
   let htmlcards = List.map (\x -> renderFaceUpHtml x) player1.hand in 
     div [ class player1.name, faceUpHandStyle player1] 
       (htmlcards ++ [div [player1Style] [ text <| nameAndScore player1]])
@@ -159,8 +160,11 @@ renderFaceDownHtml card isSideways =
 
 renderFacedownHandHtml : Model -> List(Html Msg)
 renderFacedownHandHtml model = 
-  let players = model.players in 
-    rfdhHelper players
+  rfdhHelper <| reorderPlayers model.players
+
+reorderPlayers : List M.Player -> List M.Player
+reorderPlayers players = 
+  (List.drop 1 players) ++ (List.take 1 players)
 
 rfdhHelper : List M.Player -> List(Html Msg)
 rfdhHelper players = 
@@ -172,7 +176,7 @@ rfdhHelper players =
         let playerName = [div [player1Style][text <| nameAndScore player]] in
           div [ class player.name, (faceDownHandStyle player), onClick (Fish player)] 
             ((List.map (\x -> renderFaceDownHtml x isSideways) player.hand) ++ playerName)
-      else div [] []) 
+      else renderHandHtml player) 
     players
 
 --- misc helper functions
@@ -193,3 +197,9 @@ noMaybes player =
   case player of
     Nothing -> Debug.crash "should not take this case in noMaybes"
     Just a -> a
+
+getPlayer3 : List M.Player -> M.Player
+getPlayer3 players = 
+  case players of
+    [] -> Debug.crash "should not ever happen"
+    p::rest -> if p.name == "Player3" then p else getPlayer3 rest
