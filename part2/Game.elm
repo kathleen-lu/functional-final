@@ -155,9 +155,12 @@ renderButtonHtml : Msg -> String -> Html Msg
 renderButtonHtml msg str = 
   button [buttonStyle, onClick msg] [text str]
 
-renderHandHtml : M.Player -> Html Msg
-renderHandHtml player1 =
-  let htmlcards = List.map (\x -> renderFaceUpHtml x) player1.hand in 
+renderHandHtml : M.Player -> Maybe D.Face -> Html Msg
+renderHandHtml player1 selected =
+  let htmlcards = List.map (\x -> 
+    case selected of 
+      Nothing -> renderFaceUpHtml x
+      Just s -> if s == x.face then renderFaceUpSelectHtml x else renderFaceUpHtml x) player1.hand in 
     div [ class player1.name, faceUpHandStyle player1] 
       (htmlcards ++ [div [player1Style] [ text <| nameAndScore player1]])
 
@@ -165,6 +168,11 @@ renderFaceUpHtml : D.Card -> Html Msg
 renderFaceUpHtml card = 
   div [ class (cardClass card), faceUpCardStyle, onClick (Choose card)] 
     [Element.toHtml <| Collage.collage G.w G.h <| [renderFaceUp card]]
+
+renderFaceUpSelectHtml : D.Card -> Html Msg
+renderFaceUpSelectHtml card = 
+  div [ class (cardClass card), faceUpCardStyle, onClick (Choose card)] 
+    [Element.toHtml <| Collage.collage G.w G.h <| [renderFaceUpSelect card]]
 
 renderFaceDownHtml : D.Card -> Bool -> Html Msg
 renderFaceDownHtml card isSideways =
@@ -177,14 +185,14 @@ renderFaceDownHtml card isSideways =
 
 renderFacedownHandHtml : Model -> List(Html Msg)
 renderFacedownHandHtml model = 
-  rfdhHelper <| reorderPlayers model.players
+  rfdhHelper (reorderPlayers model.players) model.currFish
 
 reorderPlayers : List M.Player -> List M.Player
 reorderPlayers players = 
   (List.drop 1 players) ++ (List.take 1 players)
 
-rfdhHelper : List M.Player -> List(Html Msg)
-rfdhHelper players = 
+rfdhHelper : List M.Player -> Maybe D.Face -> List(Html Msg)
+rfdhHelper players currFish = 
   List.map 
     (\player -> 
       if player.name /= "Player1" then
@@ -193,7 +201,7 @@ rfdhHelper players =
         let playerName = [div [player1Style][text <| nameAndScore player]] in
           div [ class player.name, (faceDownHandStyle player), onClick (Fish player)] 
             ((List.map (\x -> renderFaceDownHtml x isSideways) player.hand) ++ playerName)
-      else renderHandHtml player) 
+      else renderHandHtml player currFish) 
     players
 
 --- misc helper functions

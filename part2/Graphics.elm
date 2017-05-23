@@ -17,6 +17,7 @@ h = 150
 w = 100
 emptyCollage = Collage.filled Color.white (Collage.circle 1)
 cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
+cbgSelect =  Collage.outlined (Collage.solid Color.red) (Collage.rect w h)
 c = Color.rgb 96 134 229
 
 -- functions
@@ -47,6 +48,19 @@ renderFaceUp card =
                     Collage.move (w/2.5,-h/2.5) bc,
                     ct
                   ] 
+
+renderFaceUpSelect : Card -> Collage.Form
+renderFaceUpSelect card =
+  let face = card.face in 
+  let suit = card.suit in
+  let tc = Collage.scale 0.6 <| renderTopCorner face suit in 
+  let bc = Collage.scale 0.6 <| renderBottomCorner face suit in
+  let ct = Collage.scale 0.6 <| renderCenterImg suit in
+    Collage.group [ cbgSelect,
+                    Collage.move (-w/2.5,h/2.5) tc,
+                    Collage.move (w/2.5,-h/2.5) bc,
+                    ct
+                  ]
 
 -- creates a generic face down card whose values are unknown
 renderFaceDown : Collage.Form
