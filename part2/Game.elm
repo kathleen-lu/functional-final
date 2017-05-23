@@ -69,24 +69,24 @@ view : Model -> Html Msg
 view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
-  let players = renderFacedownHandHtml model in
-  --let player1 = renderHandHtml model in
-  let btn = renderButtonHtml in 
-  let moveText = renderMoveTextHtml model in
+  if model.isGameOver then 
     div [mainStyle model] [ h1 [titleStyle] [title], 
-                      div [style [("display", "block")]] players,
-                      div [] [btn, moveText, display]]
+        div [ style [("margin", "auto"), ("display", "block")], onClick Restart]
+              [renderButtonHtml Restart "Restart"] ]
+  else 
+    let players = renderFacedownHandHtml model in
+    let btn = renderButtonHtml NextTurn "Next Turn" in 
+    let moveText = renderMoveTextHtml model in
+      div [mainStyle model] [ h1 [titleStyle] [title], 
+                        div [style [("display", "block")]] players,
+                        div [style [("clear", "both")]] [btn, moveText, display]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
-mainStyle model = 
-  let player1 = noMaybes <| List.head model.players in
-  let player3 = getPlayer3 model.players in 
-  let width1 = (List.length player1.hand) * 180 in
-  let width3 = (List.length player3.hand) * 180 in
-    style [ ("width", (toString <| Basics.max width1 width3) ++ "px"), 
-                   ("margin", "auto"), ("display", "block"), 
-                   ("font-family", "sans-serif"), ("text-align", "center")]
+mainStyle model =
+    style [ calculateWidth model, 
+            ("margin", "auto"), ("display", "block"), 
+            ("font-family", "sans-serif"), ("text-align", "center")]
 
 titleStyle : Attribute msg
 titleStyle = style [ ("text-align", "center") ]
@@ -97,6 +97,14 @@ buttonStyle = style [ ("font-size", "28px"), ("padding", "1%"), ("border", "none
 
 moveTextStyle : Attribute msg
 moveTextStyle = style [ ("font-size", "30px") ]
+
+calculateWidth : Model -> (String, String)
+calculateWidth model =
+  let player1 = noMaybes <| List.head model.players in
+  let player3 = getPlayer3 model.players in 
+  let width1 = (List.length player1.hand) * 190 in
+  let width3 = (List.length player3.hand) * 190 in
+    ("width", (toString <| Basics.max width1 width3) ++ "px")
 
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
@@ -121,17 +129,21 @@ player1Style = style [("clear", "both"), ("font-size", "20px"), ("text-align", "
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
   if player.name == "Player2" then
-    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "3%")]
+    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "3%"), calcExtraPadding player]
   else if player.name == "Player3" then
     style [("float", "left"), ("margin-bottom", "30%"), ("display", "block")]
   else
-    style [("float", "right"), ("margin-top", "5%")]
+    style [("float", "right"), ("margin-top", "5%"), calcExtraPadding player]
 
 faceUpHandStyle :  M.Player -> Attribute msg
 faceUpHandStyle player = 
-  let length = (List.length player.hand) in
-  let width = round( (Basics.toFloat length*G.w) *1.5) in
-    style [ ("display", "block"), ("width", (toString width) ++ "px")]
+  style [("float", "left"), ("margin", "auto"), ("display", "block")]
+
+calcExtraPadding : M.Player -> (String, String)
+calcExtraPadding player =
+  let length = List.length player.hand in 
+    if length < 4 then ("padding-bottom", (toString <| G.w*(5-length)) ++ "px")
+    else ("padding", "auto")
 
 --- rendering functions
 renderMoveTextHtml : Model -> Html Msg
@@ -139,8 +151,9 @@ renderMoveTextHtml model =
   let move = model.text in 
     div [class "move-text", moveTextStyle] [text move]
 
-renderButtonHtml : Html Msg
-renderButtonHtml = button [buttonStyle, onClick NextTurn] [ text "Next Turn" ]
+renderButtonHtml : Msg -> String -> Html Msg
+renderButtonHtml msg str = 
+  button [buttonStyle, onClick msg] [text str]
 
 renderHandHtml : M.Player -> Html Msg
 renderHandHtml player1 =
