@@ -47,7 +47,6 @@ update msg model =
       let (newPlayers, resDeck) = M.dealCards model.players newDeck in
       let newGame = {model | players = newPlayers, deck = resDeck} in
         (M.scoreGame newGame, Cmd.none)
-        --({model | players = newPlayers, deck = resDeck, current = M.findPlayer newPlayers model.current.id}, Cmd.none)
     Choose card ->
       ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card."}, Cmd.none)
     Fish player -> 
@@ -70,9 +69,11 @@ view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
+    let winner = "dunno yet" in
+    let wtext = text ("Game over!" ++ winner ++ " has won! Play again?") in 
     div [mainStyle model] [ h1 [titleStyle] [title], 
         div [ style [("margin", "auto"), ("display", "block")], onClick Restart]
-              [renderButtonHtml Restart "Restart"] ]
+              [renderButtonHtml Restart "Restart", wtext] ]
   else 
     let players = renderFacedownHandHtml model in
     let btn = renderButtonHtml NextTurn "Next Turn" in 
