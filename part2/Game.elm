@@ -69,8 +69,8 @@ view model =
   let title = text "Go Fish" in
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
-    let winner = "dunno yet" in
-    let wtext = text ("Game over!" ++ winner ++ " has won! Play again?") in 
+    let winner = M.findWinner model in
+    let wtext = text ("Game over!" ++ winner.name ++ " has won! Play again?") in 
     div [mainStyle model] [ h1 [titleStyle] [title], 
         div [ style [("margin", "auto"), ("display", "block")], onClick Restart]
               [renderButtonHtml Restart "Restart", wtext] ]
@@ -101,12 +101,18 @@ moveTextStyle = style [ ("font-size", "30px") ]
 
 calculateWidth : Model -> (String, String)
 calculateWidth model =
-  let player1 = noMaybes <| List.head model.players in
-  let player3 = getPlayer3 model.players in 
-  let width1 = (List.length player1.hand) * 190 in
-  let width3 = (List.length player3.hand) * 190 in
+  let player1 = List.length (noMaybes <| List.head model.players).hand in
+  let player3 = List.length (getPlayer3 model.players).hand in 
+  let width1 = (detWidth player1)*player1 in
+  let width3 = (detWidth player3)*player3 in
     ("width", (toString <| Basics.max width1 width3) ++ "px")
 
+detWidth : Int -> Int 
+detWidth length = 
+  if length <= 2 then 250
+  else if length == 3 then 230
+  else if length == 4 then 210
+  else 190
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
 randomList msg = 
@@ -130,7 +136,7 @@ player1Style = style [("clear", "both"), ("font-size", "20px"), ("text-align", "
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
   if player.name == "Player2" then
-    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "3%"), calcExtraPadding player]
+    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "6%"), calcExtraPadding player]
   else if player.name == "Player3" then
     style [("float", "left"), ("margin-bottom", "30%"), ("display", "block")]
   else
