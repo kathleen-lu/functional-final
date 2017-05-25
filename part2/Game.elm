@@ -35,9 +35,6 @@ init = (initialModel, randomList StartGame)
 initialModel : Model
 initialModel = M.createGame 4 
 
---subscriptions : Model -> Sub Msg
---subscriptions model =
-
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of 
