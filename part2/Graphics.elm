@@ -30,8 +30,6 @@ renderFacedownHand cards =
       Collage.group [ renderFaceDown,
                       Collage.move (w*1.1,0) <| renderFacedownHand rest]
 
--- TODO iteration 2 maybe make the rendering more specific to the deck 
--- rather than just a facedown card
 renderDeck : Deck -> Collage.Form
 renderDeck deck = 
   renderFaceDown

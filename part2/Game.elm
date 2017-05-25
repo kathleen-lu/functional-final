@@ -97,7 +97,7 @@ mainStyle model =
             ("font-family", "sans-serif"), ("text-align", "center")]
 
 containerStyle : Attribute msg
-containerStyle = style [ ("background-image", "url(fish_small.png)") ]
+containerStyle = style [ ("background-image", "url(fish_small_light.png)") ]
 
 titleStyle : Attribute msg
 titleStyle = style [ ("text-align", "center"), ("font-size", "40px") ]
