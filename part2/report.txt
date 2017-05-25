@@ -1,0 +1,42 @@
+We created a Go Fish! game for this project. Instructions on the gameplay and running the code are at the bottom of this document. 
+
+We implemented the mechanics of the game and the smart AI largely as mentioned in update.txt from part 2
+of the project, with the game rules described at the bottom. As in part 2, the smart AI, which acts
+for the three computer players that the human player plays against, functions essentially like an attentive
+human player, with no tricks added in order to keep the game fair. For example, the AI does not peek 
+at other players' hands.  
+
+As human players can, the game tracks a list of previous unsuccessful "asks": i.e. if Player 2 asks Player 3 for a King, but Player 3 does not have one, we record that Player 2 has a King in their hand. An "ask" is only removed from this list if that player asks for the card again and receives it, or if someone asks for and receives the card from them instead. Then, on an AI turn, we check if any of the cards in the AI player's hand are also in the tracked "asks": if so, we ask that player for that card. There is a chance that Player 3 may
+have luckily drew a King from the deck already and scored on their own, in which case we wouldn't have removed
+their "ask" from the list. However, we naturally traverse the list of asks in order of recency, so we choose
+the cards more likely to remain in the listed player's hand. 
+
+If the AI player does not have any cards on their hand that appear in the list of asks, they will instead ask for a random (the first) card in their hand from the player with the most unidentified cards in their hand (i.e. the player whose (num cards in hand - num tracked asks) is highest). An exception to the above behavior occurs when the AI player has only one card in their hand and is currently losing the game. Rather than make a "smart" move that ends the game with them losing, the AI will instead avoid asking any player recorded as having the same card in their hand.
+
+Since part 2, we have made improvements to the front end of the game, notably by actually linking in 
+the game's mechanics via Html events to make the game playable. Aside from adding functionality to
+the various onClick events and buttons, we added score counters and some practical visual enhancements
+(e.g. highlighting the card selected by the human player to ask another player for). We added a 
+fish-themed background purely for aesthetic reasons, but otherwise, all of the game, including the 
+individual cards, are coded from scratch rather than saved images. 
+
+The game can be run by: 
+  - running "elm-make Game.elm --output=Game.html"
+  - opening up Game.html in your browser
+
+Gameplay: 
+
+There are four players, each with five cards randomly assigned to their hand initially (though a player may start with fewer cards if they were assigned one or two pairs of cards already) and their current score. 
+A player's score increments each time they form a pair of any face (e.g. two King cards), where suits
+do not matter. On each turn, a player asks another player for a certain face value (i.e. "Got any twos?"). 
+If the requested player has a card with that face in their hand, they give the card up, the first
+player scores, and the first player is free to ask another player for a card. If not (Go Fish!), 
+the first player draws a card and ends their turn. The game ends with any player runs out of cards
+in their hand, or the deck runs out of cards. The player with the most points (scored pairs) wins. 
+
+Once open, the game automatically begins with your (Player 1's) turn. To choose a card to ask another
+player for, click on one of the cards in your hand. Then, to ask a player for that card, click on
+that player's name. On an AI player's turn, click the "Next Turn" button and they will conduct their
+turn, with a description of what happened appearing below the game. 
+
+
