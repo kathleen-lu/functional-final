@@ -70,9 +70,9 @@ view model =
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
     let winner = M.findWinner model in
-    let wtext = text ("Game over!" ++ winner.name ++ " has won! Play again?") in 
+    let wtext = text ("Game over! " ++ winner.name ++ " has won! Play again?") in 
     div [mainStyle model] [ h1 [titleStyle] [title], 
-        div [ style [("margin", "auto"), ("display", "block")], onClick Restart]
+        div [ style [("margin", "auto"), ("display", "block")], moveTextStyle, onClick Restart]
               [renderButtonHtml Restart "Restart", wtext] ]
   else 
     let players = renderFacedownHandHtml model in
@@ -136,7 +136,7 @@ player1Style = style [("clear", "both"), ("font-size", "20px"), ("text-align", "
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
   if player.name == "Player2" then
-    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "6%"), calcExtraPadding player]
+    style [("float", "left"), ("margin-top", "5%"), ("margin-right", "5%"), calcExtraPadding player]
   else if player.name == "Player3" then
     style [("float", "left"), ("margin-bottom", "30%"), ("display", "block")]
   else
