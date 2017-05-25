@@ -8,6 +8,7 @@ import Random
 import Collage
 import Element
 import Text
+import Image
 import String exposing(..)
 import Html exposing (..)
 import Html.Events exposing (onClick)
@@ -73,8 +74,8 @@ view model =
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
     let winner = M.findWinner model in
-    let wtext = text ("Game over! " ++ winner.name ++ " has won! Play again?") in 
-    div [mainStyle model] [ h1 [titleStyle] [title], 
+    let wtext = text ("Game over! " ++ winner.name ++ " has won with a score of " ++ (toString winner.score.points) ++ " ! Play again?") in 
+      div [mainStyle model] [ h1 [titleStyle] [title], 
         div [ style [("margin", "auto"), ("display", "block")], moveTextStyle, onClick Restart]
               [renderButtonHtml Restart "Restart", wtext] ]
   else 
@@ -82,15 +83,19 @@ view model =
     let btn = renderButtonHtml NextTurn "Next Turn" in 
     let moveText = renderMoveTextHtml model in
       div [mainStyle model] [ h1 [titleStyle] [title], 
+                        div [ class "fish"] [],
                         div [style [("display", "block")]] players,
                         div [style [("clear", "both")]] [btn, moveText, display]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
 mainStyle model =
-    style [ calculateWidth model, 
-            ("margin", "auto"), ("display", "block"), 
+    style [ calculateWidth model,
+            ("margin", "auto"), ("display", "block"),
             ("font-family", "sans-serif"), ("text-align", "center")]
+
+containerStyle : Attribute msg
+containerStyle = style [ ("background-image", "http://localhost:8000/fish.png")]
 
 titleStyle : Attribute msg
 titleStyle = style [ ("text-align", "center") ]
@@ -112,10 +117,19 @@ calculateWidth model =
 
 detWidth : Int -> Int 
 detWidth length = 
-  if length <= 2 then 250
+  if length <= 1 then 270
+  else if length == 2 then 250
   else if length == 3 then 230
   else if length == 4 then 210
   else 190
+
+-- background image --
+backgroundHtml : Html Msg
+backgroundHtml =
+  let full_img = {url = "fish.png", width = 2400, height = 2134} in 
+  let img = Image.resize (800, 711) full_img in
+    Image.viewImg [style [("background-repeat", "repeat"), ("max-width", "100%"), ("max-height", "auto"), ("z-index", "-1")]] img
+
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
 randomList msg = 
@@ -134,7 +148,12 @@ faceDownCardStyle : Attribute msg
 faceDownCardStyle = style [("margin", "2px")]
 
 player1Style : Attribute msg
-player1Style = style [("clear", "both"), ("font-size", "20px"), ("text-align", "center")]
+player1Style = style [ ("clear", "both"), ("font-size", "20px"), ("text-align", "center") ]
+
+currentPlayerStyle : Attribute msg 
+currentPlayerStyle = style [ ("background-color", "#00FFFF"), ("padding", "1%"),
+                             ("clear", "both"), ("font-size", "20px"), ("text-align", "center")
+                             ]
 
 faceDownHandStyle : M.Player -> Attribute msg
 faceDownHandStyle player =
@@ -152,7 +171,8 @@ faceUpHandStyle player =
 calcExtraPadding : M.Player -> (String, String)
 calcExtraPadding player =
   let length = List.length player.hand in 
-    if length < 4 then ("padding-bottom", (toString <| G.w*(5-length)) ++ "px")
+  let val = G.w*(5-length) in
+    if length < 4 then ("padding-bottom", (toString val) ++ "px")
     else ("padding", "auto")
 
 --- rendering functions
