@@ -90,23 +90,36 @@ removeAsk p f asks =
                             else 
                               (player, face)::(removeAsk p f rest)
 
-checkAsks : Player -> List (Player, D.Face) -> Bool -> Maybe (Player, D.Face)
-checkAsks p asks smart = 
+checkAsks : Player -> List (Player, D.Face) -> Maybe (Player, D.Face)
+checkAsks p asks = 
   (case asks of 
     [] -> Nothing 
     (p2, f)::rest -> 
       if p2.id == p.id then 
-        checkAsks p rest smart 
+        checkAsks p rest  
       else 
         (case remove f p.hand of 
-          Nothing -> if smart then 
-                       checkAsks p rest smart
-                     else 
-                        Just (p2, f)
-          Just _ -> if smart then 
-                      Just (p2, f)
-                    else 
-                      checkAsks p rest smart))
+          Nothing -> checkAsks p rest 
+          Just _ -> Just (p2, f)))
+
+
+playerNotInList : Int -> List Int -> List Int -> Maybe Int
+playerNotInList currID pIDs players =
+  (case pIDs of 
+    [] -> Nothing 
+    id::rest -> if List.member id players || currID == id then 
+                  playerNotInList currID rest players 
+                else  
+                  Just id)
+
+whoHasCard : D.Face -> List (Player, D.Face) -> List Int -> List Int
+whoHasCard face asks players = 
+  (case asks of
+    [] -> players 
+    (p, f)::rest -> if face == f then 
+                      whoHasCard face rest (p.id::players)
+                    else
+                      whoHasCard face rest players)
 
 asksList : List (Player, D.Face) -> List Int -> List Int
 asksList asks numAsks = 
@@ -250,9 +263,9 @@ fish g player =
                         else 
                           {newGame | text = newGame.text ++ " It's still Player " ++ toString g.current.id ++ "'s turn."})))
 
-makeMove : Game -> Bool -> Game 
-makeMove g smart = 
-  (case checkAsks g.current g.asks smart of 
+makeMove : Game -> Game 
+makeMove g =
+  (case checkAsks g.current g.asks of 
     Nothing -> 
       (case g.current.hand of 
         [] -> Debug.crash "Error"
@@ -270,10 +283,17 @@ decideMove g =
     c::[] -> -- if one card in hand & losing, make a bad move on purpose
       let winner = findWinner g in 
       if winner.id /= g.current.id && winner.score.points > g.current.score.points then 
-        makeMove g False
+        let
+          newGame = {g | currFish = Just c.face} 
+          cardholders = whoHasCard c.face g.asks [] 
+        in 
+        let p = playerNotInList g.current.id [1, 2, 3, 4] cardholders in 
+          (case p of 
+            Nothing -> fish newGame (nextPlayer g)
+            Just pID -> fish newGame (findPlayer g.players pID))
       else 
-        makeMove g True
-    _ -> makeMove g True)
+        makeMove g
+    _ -> makeMove g)
 
 smartAI : Game -> Game
 smartAI g = 
