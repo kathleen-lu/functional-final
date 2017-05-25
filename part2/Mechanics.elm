@@ -287,7 +287,7 @@ decideMove g =
           newGame = {g | currFish = Just c.face} 
           cardholders = whoHasCard c.face g.asks [] 
         in 
-        let p = playerNotInList g.current.id [1, 2, 3, 4] cardholders in 
+        let p = playerNotInList g.current.id (List.range 1 (List.length g.players)) cardholders in 
           (case p of 
             Nothing -> fish newGame (nextPlayer g)
             Just pID -> fish newGame (findPlayer g.players pID))

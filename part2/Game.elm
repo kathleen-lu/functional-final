@@ -74,10 +74,10 @@ view model =
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
     let winner = M.findWinner model in
-    let wtext = text ("Game over! " ++ winner.name ++ " has won with a score of " ++ (toString winner.score.points) ++ " ! Play again?") in 
+    let wtext = text ("Game over! " ++ winner.name ++ " has won with a score of " ++ (toString winner.score.points) ++ "! Play again?") in 
       div [id "container", containerStyle] 
         [div [mainStyle model] [ h1 [titleStyle] [title], 
-         div [ style [("margin", "auto"), ("display", "block")], moveTextStyle, onClick Restart]
+         div [ style [("margin", "auto"), ("display", "block")], moveTextStyle]
               [renderButtonHtml Restart "Restart", wtext] ]]
   else 
     let players = renderFacedownHandHtml model in
