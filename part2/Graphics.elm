@@ -18,7 +18,8 @@ w = 100
 emptyCollage = Collage.filled Color.white (Collage.circle 1)
 cbg = Collage.outlined (Collage.solid Color.gray) (Collage.rect w h)
 cbgSelect =  Collage.outlined (Collage.solid Color.red) (Collage.rect w h)
-c = Color.rgb 96 134 229
+bg = Collage.filled Color.white (Collage.rect w h)
+c = Color.rgb 220 230 247
 
 -- functions
 renderFacedownHand : List Card -> Collage.Form
@@ -43,7 +44,7 @@ renderFaceUp card =
   let tc = Collage.scale 0.6 <| renderTopCorner face suit in 
   let bc = Collage.scale 0.6 <| renderBottomCorner face suit in
   let ct = Collage.scale 0.6 <| renderCenterImg suit in
-    Collage.group [ cbg,
+    Collage.group [ bg, cbg,
                     Collage.move (-w/2.5,h/2.5) tc,
                     Collage.move (w/2.5,-h/2.5) bc,
                     ct
@@ -67,7 +68,7 @@ renderFaceDown : Collage.Form
 renderFaceDown =
   let innerBorder = Collage.filled c (Collage.rect (w/1.13) (h/1.1)) in
   let border = Collage.outlined (Collage.solid c) (Collage.rect w h) in
-    Collage.group [border, innerBorder]
+    Collage.group [bg, border, innerBorder]
 
 -- helpers for rendering a face up card
 renderCenterImg : Suit -> Collage.Form

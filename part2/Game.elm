@@ -75,17 +75,19 @@ view model =
   if model.isGameOver then 
     let winner = M.findWinner model in
     let wtext = text ("Game over! " ++ winner.name ++ " has won with a score of " ++ (toString winner.score.points) ++ " ! Play again?") in 
-      div [mainStyle model] [ h1 [titleStyle] [title], 
-        div [ style [("margin", "auto"), ("display", "block")], moveTextStyle, onClick Restart]
-              [renderButtonHtml Restart "Restart", wtext] ]
+      div [id "container", containerStyle] 
+        [div [mainStyle model] [ h1 [titleStyle] [title], 
+         div [ style [("margin", "auto"), ("display", "block")], moveTextStyle, onClick Restart]
+              [renderButtonHtml Restart "Restart", wtext] ]]
   else 
     let players = renderFacedownHandHtml model in
     let btn = renderButtonHtml NextTurn "Next Turn" in 
     let moveText = renderMoveTextHtml model in
-      div [mainStyle model] [ h1 [titleStyle] [title], 
+      div [id "container", containerStyle] 
+                       [div [mainStyle model] [ h1 [titleStyle] [title], 
                         div [ class "fish"] [],
                         div [style [("display", "block")]] players,
-                        div [style [("clear", "both")]] [btn, moveText, display]]
+                        div [style [("clear", "both")]] [btn, moveText, display]]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
@@ -95,10 +97,10 @@ mainStyle model =
             ("font-family", "sans-serif"), ("text-align", "center")]
 
 containerStyle : Attribute msg
-containerStyle = style [ ("background-image", "http://localhost:8000/fish.png")]
+containerStyle = style [ ("background-image", "url(fish_small.png)") ]
 
 titleStyle : Attribute msg
-titleStyle = style [ ("text-align", "center") ]
+titleStyle = style [ ("text-align", "center"), ("font-size", "40px") ]
 
 buttonStyle : Attribute msg
 buttonStyle = style [ ("font-size", "28px"), ("padding", "1%"), ("border", "none"), 
