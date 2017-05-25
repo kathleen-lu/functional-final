@@ -125,13 +125,6 @@ detWidth length =
   else if length == 4 then 210
   else 190
 
--- background image --
-backgroundHtml : Html Msg
-backgroundHtml =
-  let full_img = {url = "fish.png", width = 2400, height = 2134} in 
-  let img = Image.resize (800, 711) full_img in
-    Image.viewImg [style [("background-repeat", "repeat"), ("max-width", "100%"), ("max-height", "auto"), ("z-index", "-1")]] img
-
 --- Update functions ----  
 randomList : (List Int -> Msg) -> Cmd Msg 
 randomList msg = 
