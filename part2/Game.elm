@@ -45,13 +45,19 @@ update msg model =
       let newGame = {model | players = newPlayers, deck = resDeck} in
         (M.scoreGame newGame, Cmd.none)
     Choose card ->
-      ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card, or change your selection by clicking on another card."}, Cmd.none)
-    Fish player -> 
-      if player.id == model.current.id then
-        ({model | text = "You can't ask for a card from yourself!"}, Cmd.none)
+      if model.current.id == 1 then
+        ({model | currFish = Just card.face, text = "Your turn. Now click a player to ask for that card, or change your selection by clicking on another card."}, Cmd.none)
       else 
-        let newGame = M.fish model player in
-          (newGame, Cmd.none)
+        ({model | text = "It's not your turn! Click the Next Turn button for the AI to move."}, Cmd.none)
+    Fish player -> 
+      if model.current.id == 1 then 
+        if player.id == model.current.id then
+          ({model | text = "You can't ask for a card from yourself!"}, Cmd.none)
+        else 
+          let newGame = M.fish model player in
+            (newGame, Cmd.none)
+      else 
+        ({model | text = "It's not your turn! Click the Next Turn button for the AI to move."}, Cmd.none)
     NextTurn -> 
       if model.current.id == 1 then 
         ({model | text = "It's your turn. Please click on one of your cards. Click the Next Turn button only on AI turns."}, Cmd.none)
