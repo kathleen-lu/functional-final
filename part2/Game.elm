@@ -87,7 +87,7 @@ view model =
                        [div [mainStyle model] [ h1 [titleStyle] [title], 
                         div [ class "fish"] [],
                         div [style [("display", "block")]] players,
-                        div [style [("clear", "both")]] [btn, moveText, display]]]
+                        div [style [("clear", "both"), ("padding-bottom", "6%")]] [btn, moveText]]]
 
 --- attribute styles
 mainStyle : Model -> Attribute msg
