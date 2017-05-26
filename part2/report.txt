@@ -15,10 +15,8 @@ If the AI player does not have any cards on their hand that appear in the list o
 
 Since part 2, we have made improvements to the front end of the game, notably by actually linking in 
 the game's mechanics via Html events to make the game playable. Aside from adding functionality to
-the various onClick events and buttons, we added score counters and some practical visual enhancements
-(e.g. highlighting the card selected by the human player to ask another player for). We added a 
-fish-themed background purely for aesthetic reasons, but otherwise, all of the game, including the 
-individual cards, are coded from scratch rather than saved images. 
+the various onClick events and buttons, we added score counters and some practical visual enhancements, such as making sure that the layout of each player's hands remains relatively well proportioned even as the number of cards shrink or increase. Additionally, we highlighted the card selected by the human player to ask another player for for ease of understanding the steps of the game. 
+We added a fish-themed background purely for aesthetic reasons, but otherwise, all of the game, including the individual cards, are coded from scratch rather than saved images. 
 
 The game can be run by: 
   - running "elm-make Game.elm --output=Game.html"

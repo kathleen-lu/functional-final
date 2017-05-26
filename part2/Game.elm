@@ -70,7 +70,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-  let title = text "Go Fish" in
+  let title = text "Go Fish!" in
   let display = text (" " ++ toString model) in
   if model.isGameOver then 
     let winner = M.findWinner model in

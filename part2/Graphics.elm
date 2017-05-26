@@ -160,7 +160,6 @@ cardClass card =
     Spade -> faceToString card.face ++ "-spades"
 
 
--- TODO iteration 2 : add in the number of symbols according to card
 faceToInt : Face -> Int 
 faceToInt face = 
   case face of
