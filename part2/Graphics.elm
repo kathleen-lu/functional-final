@@ -55,7 +55,7 @@ renderFaceUpSelect card =
   let tc = Collage.scale 0.6 <| renderTopCorner face suit in 
   let bc = Collage.scale 0.6 <| renderBottomCorner face suit in
   let ct = Collage.scale 0.6 <| renderCenterImg suit in
-    Collage.group [ cbgSelect,
+    Collage.group [ bg, cbgSelect,
                     Collage.move (-w/2.5,h/2.5) tc,
                     Collage.move (w/2.5,-h/2.5) bc,
                     ct
